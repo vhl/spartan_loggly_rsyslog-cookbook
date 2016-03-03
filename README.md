@@ -1,7 +1,8 @@
-[![Build Status](https://travis-ci.org/mveitas/loggly-rsyslog.svg?branch=master)](https://travis-ci.org/mveitas/loggly-rsyslog)
-
 Loggly rsyslog Cookbook
 ================
+
+Note: This has been forked from [apetresc/loggly-rsyslog](https://github.com/apetresc/loggly-rsyslog).
+
 Installs and configures rsyslog for use with [Loggly](http://loggly.com). This cookbook was built upon the work from an existing cookbook, https://github.com/kdaniels/loggly-rsyslog.
 
 Requirements

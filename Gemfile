@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'stove'
 gem 'rake', '~> 10.2'
 gem 'berkshelf',  '~> 3'
 gem 'foodcritic', '~> 3.0'
