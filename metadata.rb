@@ -5,7 +5,7 @@ license          'Apache 2.0'
 source_url       'https://github.com/spartansystems/spartan_loggly_rsyslog-cookbook'
 description      'Configures rsyslog to send logs to Loggly'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '2.1.2'
+version          '2.1.3'
 
 supports 'ubuntu', '>= 12.04'
 
