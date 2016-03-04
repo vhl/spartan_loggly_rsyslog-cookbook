@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'loggly-rsyslog::default' do
+describe 'spartan_loggly_rsyslog::default' do
 
   before do
     Chef::EncryptedDataBagItem.stub(:load).with('loggly', 'token').and_return(

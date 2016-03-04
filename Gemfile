@@ -1,11 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'stove'
-gem 'rake', '~> 10.2'
 gem 'berkshelf',  '~> 3'
-gem 'foodcritic', '~> 3.0'
-gem 'rubocop'
 gem 'chefspec',   '~> 3.1'
+gem 'foodcritic', '~> 3.0'
+gem 'rake', '~> 10.2'
+gem 'rubocop'
+gem 'stove'
 
 group :integration do
   gem 'kitchen-vagrant', '~> 0.14.0'

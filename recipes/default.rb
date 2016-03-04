@@ -20,7 +20,7 @@ end
 
 include_recipe "rsyslog::default"
 
-include_recipe "loggly-rsyslog::tls" if node['loggly']['tls']['enabled']
+include_recipe "spartan_loggly_rsyslog::tls" if node['loggly']['tls']['enabled']
 
 template node['loggly']['rsyslog']['conf'] do
   source 'rsyslog-loggly.conf.erb'

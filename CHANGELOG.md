@@ -1,6 +1,15 @@
-loggly-rsyslog Cookbook CHANGELOG
+spartan_loggly_rsyslog Cookbook CHANGELOG
 ==========================
-This file is used to list changes made in each version of the loggly-rsyslog cookbook.
+This file is used to list changes made in each version of the spartan_loggly_rsyslog cookbook.
+
+v2.1.2
+------------------
+- Finish refactoring name to spartan_loggly_rsyslog.
+- Added an .editorconfig file.
+
+v2.1.1
+------------------
+- Update fork of cookbook to be managed by Spartan.
 
 v2.0.0
 ------------------

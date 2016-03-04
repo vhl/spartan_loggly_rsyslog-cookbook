@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe 'loggly-rsyslog::tls' do
-  
+describe 'spartan_loggly_rsyslog::tls' do
+
   let(:chef_run) do
     ChefSpec::Runner.new do |node|
       node.set['loggly']['token'] = 'some_token_value'
@@ -13,7 +13,7 @@ describe 'loggly-rsyslog::tls' do
   end
 
   it 'does not install the rsyslog-gnutls package' do
-    expect(chef_run).to install_package('rsyslog-gnutls')    
+    expect(chef_run).to install_package('rsyslog-gnutls')
   end
 
   it 'creates a directory for the certificate' do
@@ -40,7 +40,7 @@ describe 'loggly-rsyslog::tls' do
   it 'creates the loggly certificate' do
     expect(chef_run).to run_bash('bundle certificate')
   end
-  
+
   it 'loads the imfile module when log directories are not empty' do
     pending("Need to figure out stubbing of File.exists? as it used in many places inside Chef")
   end
