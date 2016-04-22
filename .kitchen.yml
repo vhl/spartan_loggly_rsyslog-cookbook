@@ -1,40 +1,25 @@
 ---
 driver:
   name: vagrant
-  require_chef_omnibus: 11.10.0
-  customize:
-    memory: 1024
 
 provisioner:
-  name: chef_solo
+  name: chef_zero
+
+verifier:
+  name: busser
 
 platforms:
-- name: ubuntu-12.04
-  run_list:
-  - recipe[apt]
+  - name: ubuntu-14.04
 
 suites:
-- name: default
-  data_bags_path: "test/integration/data_bags"
-  encrypted_data_bag_secret_key_path: "test/integration/encrypted_data_bag_secret"
-  run_list:
-    - recipe[loggly-rsyslog_test::default]
-
-- name: without_tls
-  data_bags_path: "test/integration/data_bags"
-  encrypted_data_bag_secret_key_path: "test/integration/encrypted_data_bag_secret"
-  attributes:
-    loggly:
-      tls:
-        enabled: false
-  run_list:
-    - recipe[loggly-rsyslog_test::default]
-
-- name: no_data_bag
-  attributes:
-    loggly:
-      token:
-        from_databag: false
-        value: logglytoken123456
-  run_list:
-    - recipe[loggly-rsyslog_test::default]
+  - name: default
+    run_list:
+      - recipe[spartan_loggly_rsyslog::default]
+    attributes:
+      loggly:
+        token: test_token
+        tags:
+          - Vagrant
+          - test
+        log_files:
+          - filename: /tmp/test.log

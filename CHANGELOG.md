@@ -4,6 +4,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2016-04-21
+### Removed
+- Data Bag support.
+- Ability to "watch" directories.
+- Option to disable TLS.
+
+### Updated
+- Loggly rsyslog config to use rsyslog 7 syntax.
+- Moved file definitions to their own config file.
+
 ## [2.1.3] - 2016-03-03
 ### Fixed
 - cert checksum value to the latest.
@@ -30,6 +40,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Configuration for monitoring a list of files
 - Configuration for monitoring a list of directories
 
-[Unreleased]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.3...HEAD
-[Unreleased]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.2...v2.1.3
+[Unreleased]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v3.0.0...HEAD
+[3.0.0]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.3...v3.0.0
+[2.1.3]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbook/compare/v2.1.1...v2.1.2
