@@ -1,12 +1,13 @@
 source 'https://rubygems.org'
 
-gem 'berkshelf',  '~> 3'
-gem 'chefspec',   '~> 3.1'
-gem 'foodcritic', '~> 3.0'
-gem 'rake', '~> 10.2'
+gem 'pry'
+gem 'rake'
 gem 'rubocop'
-gem 'stove'
 
-group :integration do
-  gem 'kitchen-vagrant', '~> 0.14.0'
+group :test do
+  gem 'berkshelf'
+  gem 'chef'
+  gem 'chefspec'
+  gem 'foodcritic'
+  gem 'rspec_junit_formatter', '0.2.2'
 end

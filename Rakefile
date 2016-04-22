@@ -1,27 +1,26 @@
-require 'bundler/setup'
-require 'rspec/core/rake_task'
+task default: [:style, :lint, :spec, :test]
 
-require 'stove/rake_task'
-Stove::RakeTask.new
-
-namespace :style do
-  require 'foodcritic'
-  desc 'Run Chef style checks'
-  FoodCritic::Rake::LintTask.new(:chef)
+desc 'Run tests capable of running on circleci.'
+task circleci: [:style, :lint] do
+  sh 'rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml'
 end
 
-desc 'Run all style checks'
-task style: ['style:chef']
-
-RSpec::Core::RakeTask.new(:unit) do |t|
-  t.rspec_opts = [].tap do |a|
-    a.push('--color')
-    a.push('--format progress')
-  end.join(' ')
+desc 'Run rubocop against cookbook ruby files.'
+task :style do
+  sh 'rubocop'
 end
 
-desc 'Run all tests'
-task test: [:unit]
+desc 'Run foodcritic linter against cookbook.'
+task :lint do
+  sh 'foodcritic -X spec/ -f any .'
+end
 
-# The default rake task should just run it all
-task default: [:style, :test]
+desc 'Run chefspec.'
+task :spec do
+  sh 'chef exec rspec --color'
+end
+
+desc 'Run test kitchen.'
+task :test do
+  sh 'kitchen test'
+end
