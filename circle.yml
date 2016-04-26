@@ -1,3 +1,9 @@
+machine:
+  post:
+    - wget https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.13.21-1_amd64.deb
+    - sudo dpkg -i chefdk_0.13.21-1_amd64.deb
+    - chef gem install rspec_junit_formatter -v 0.2.2
+
 test:
   override:
-    - bundle exec rake circleci
+    - rake circleci

@@ -2,17 +2,17 @@ task default: [:style, :lint, :spec, :test]
 
 desc 'Run tests capable of running on circleci.'
 task circleci: [:style, :lint] do
-  sh 'rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml'
+  sh 'chef exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml'
 end
 
 desc 'Run rubocop against cookbook ruby files.'
 task :style do
-  sh 'rubocop'
+  sh 'chef exec rubocop'
 end
 
 desc 'Run foodcritic linter against cookbook.'
 task :lint do
-  sh 'foodcritic -X spec/ -f any .'
+  sh 'chef exec foodcritic -X spec/ -f any .'
 end
 
 desc 'Run chefspec.'
@@ -22,5 +22,5 @@ end
 
 desc 'Run test kitchen.'
 task :test do
-  sh 'kitchen test'
+  sh 'chef exec kitchen test'
 end
