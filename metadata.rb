@@ -10,5 +10,4 @@ version          '3.0.0'
 
 supports 'ubuntu', '>= 14.04'
 
-depends 'apt', '~> 3.0.0'
 depends 'rsyslog', '~> 4.0.0'
