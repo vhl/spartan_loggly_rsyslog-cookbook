@@ -11,11 +11,14 @@ Supported Versions
 ------------
 - Chef 12
 - Ruby 2.1.6
-- rsyslog 7
+- Ruby 2.2.4
+- rsyslog 5.8 through 8.4
 
 Platform
 --------
-Tested against Ubuntu 14.04
+Tested against Ubuntu 12.04, 14.04, 15.04, 16.04
+Tested against Centos 6.6, 6.7, 6.8, 7.2.
+Tested against Debian 7.11
 
 Attributes
 ----------
