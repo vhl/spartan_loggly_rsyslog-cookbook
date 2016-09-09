@@ -29,7 +29,7 @@ end
 
 directory node.loggly.tls.cert_path do
   owner 'root'
-  group 'syslog'
+  group node.rsyslog.priv_group || 'root'
   mode 0750
   action :create
   recursive true
