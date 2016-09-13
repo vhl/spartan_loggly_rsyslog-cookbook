@@ -25,3 +25,11 @@ suites:
           - test
         log_files:
           - filename: /tmp/test.log
+        apps:
+          nginx:
+            - filename: /tmp/nginx-access.log
+              tag: custom-nginx-access
+              statefile: /tmp/custom-nginx-state-file
+            - filename: /tmp/nginx-ssl-access.log
+              tag: custom-nginx-access
+            - filename: /tmp/nginx-error.log

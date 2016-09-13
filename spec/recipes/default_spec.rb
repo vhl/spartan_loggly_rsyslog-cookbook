@@ -214,8 +214,8 @@ describe 'spartan_loggly_rsyslog::default' do
       end.converge(described_recipe)
     end
 
-    it 'does not run a ruby block to check the rsyslog package version' do
-      expect(chef_run).not_to run_ruby_block('installed_rsyslog_version_check')
+    it 'does not run a ruby block to set rsyslog version6 template sources' do
+      expect(chef_run).not_to run_ruby_block('set_version6_sources_if_needed')
     end
   end
 
@@ -228,8 +228,8 @@ describe 'spartan_loggly_rsyslog::default' do
       end.converge(described_recipe)
     end
 
-    it 'runs a ruby block to check the rsyslog package version' do
-      expect(chef_run).to run_ruby_block('installed_rsyslog_version_check')
+    it 'runs a ruby block to set template sources to use rsyslog version6 syntax' do
+      expect(chef_run).to run_ruby_block('set_version6_sources_if_needed')
     end
   end
 end

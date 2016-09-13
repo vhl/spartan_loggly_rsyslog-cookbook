@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+Chef::Recipe.public_send(:include, LogglyHelpers)
+Chef::Resource.public_send(:include, LogglyHelpers)
+
 fail 'You must define the Loggly token.' if node.loggly.token.empty?
 
 # Install rsyslog
@@ -46,27 +49,21 @@ remote_file 'download loggly.com cert' do
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
-# Set up tags
-tags = node.loggly.tags || []
-tags = tags.map { |tag| "tag=\\\"#{tag}\\\"" }.join(' ')
-
+# By default, use templates with configuration syntax for rsyslog versions
+# 7.x and higher.
 rsyslog_conf_source = 'rsyslog-loggly.conf.erb'
 files_conf_source = 'files.conf.erb'
+app_conf_source = 'apps.conf.erb'
 
-# Determine whether to use 6.x and lower syntax in configuration
-ruby_block 'installed_rsyslog_version_check' do
+# If rsyslog version 6.x or below is installed use templates with the older syntax
+ruby_block 'set_version6_sources_if_needed' do
   block do
-    version_cmd = Mixlib::ShellOut.new('rpm -q rsyslog')
-    version_cmd.run_command
-    response = version_cmd.stdout.chomp
-    # will return something like rsyslog-5.8.10-10.el6_6.x86_64
-
-    major_version = response.match(/^rsyslog-(\d+)/)[1].to_i
-    if major_version <= 6
-      rsyslog_conf_resource = run_context.resource_collection.find(template: node.loggly.rsyslog.conf)
-      rsyslog_conf_resource.source('rsyslog-loggly-version6.conf.erb')
-      files_conf_resource = run_context.resource_collection.find(template: node.loggly.rsyslog.files_conf)
-      files_conf_resource.source('files-version6.conf.erb')
+    if rsyslog_major_version <= 6
+      set_version6_source(node.loggly.rsyslog.conf, 'rsyslog-loggly-version6.conf.erb')
+      set_version6_source(node.loggly.rsyslog.files_conf, 'files-version6.conf.erb')
+      node.loggly.apps.keys.each do |app_name|
+        set_version6_source(app_conf(app_name), 'apps-version6.conf.erb')
+      end
     end
   end
   only_if { node.platform_family == 'rhel' }
@@ -83,13 +80,7 @@ template node.loggly.rsyslog.conf do
 end
 
 # Write out configs for files
-log_files = node.loggly.log_files.reject { |f| !f.is_a?(Hash) || !f.key?('filename') || f['filename'].strip.empty? }
-files = log_files.map do |f|
-  f = f.to_h
-  f['tag'] = File.basename(f['filename']).tr('.', '-') unless f.key?('tag')
-  f['statefile'] = "#{f['filename']}.rsyslog_state" unless f.key?('statefile')
-  f
-end
+files = configure_files(node.loggly.log_files)
 
 template node.loggly.rsyslog.files_conf do
   source files_conf_source
@@ -98,5 +89,24 @@ template node.loggly.rsyslog.files_conf do
   mode 0644
   variables(log_files: files)
   notifies :restart, 'service[rsyslog]', :delayed
-  not_if { log_files.empty? }
+  not_if { files.empty? }
+end
+
+# Write out configs for apps
+node.loggly.apps.each do |app_name, app_log_files|
+  files = configure_files(app_log_files)
+  file_tags = files.map { |file| file['tag'] }.uniq
+
+  template app_conf(app_name) do
+    source app_conf_source
+    owner 'root'
+    group 'root'
+    mode 0644
+    variables(app_name: app_name,
+              format: loggly_format(app_name),
+              log_files: files,
+              file_tags: file_tags)
+    notifies :restart, 'service[rsyslog]', :delayed
+    not_if { files.empty? }
+  end
 end
