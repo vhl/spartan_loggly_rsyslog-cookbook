@@ -4,6 +4,7 @@ normal.rsyslog.max_message_size = '64k'
 default.loggly.tags = []
 
 default.loggly.log_files = []
+default.loggly.apps = {}
 
 default.loggly.tls.cert_path = '/etc/rsyslog.d/keys/ca.d'
 default.loggly.tls.cert_file = 'logs-01.loggly.com_sha12.crt'
