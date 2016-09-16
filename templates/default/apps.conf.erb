@@ -5,8 +5,7 @@ $InputFilePollInterval <%= node.loggly.rsyslog.input_file_poll_interval %>
 $WorkDirectory <%= node.rsyslog.working_dir %>
 
 # Add a tag for <%= @app_name %> app events
-template(name="<%= @format %>" type="string"
-string="%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [<%= node.loggly.token %>@41058 tag=\"<%= @app_name %>\"] %msg%\n")
+template(name="<%= @format %>" type="string" string="%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [<%= node.loggly.token %>@41058 tag=\"<%= @app_name %>\"] %msg%\n")
 
 <% @log_files.each do |logfile| -%>
 # Input for <%= logfile['filename'] %>
