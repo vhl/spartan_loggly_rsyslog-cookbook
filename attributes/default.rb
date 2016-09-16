@@ -11,6 +11,10 @@ default.loggly.tls.cert_file = 'logs-01.loggly.com_sha12.crt'
 default.loggly.tls.cert_url = 'https://logdog.loggly.com/media/logs-01.loggly.com_sha12.crt'
 default.loggly.tls.cert_checksum = 'b562ae82b54bcb43923290e78949153c0c64910d40b02d2207010bb119147ffc'
 
+# rsyslog cookbook sets this for ubuntu but leaves it nil for other platforms
+# However, we want to use 'root' when setting up file permissions.
+default.loggly.rsyslog_group = node.rsyslog.priv_group || 'root'
+
 default.loggly.token = ''
 
 default.loggly.rsyslog.conf_dir = '/etc/rsyslog.d'
