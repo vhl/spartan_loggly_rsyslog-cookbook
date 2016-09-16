@@ -1,6 +1,9 @@
 module LogglyHelpers
   def configure_files(original_files)
-    valid_files(original_files).map do |file|
+    # The .to_h is required because files aren't hashes, but are chef node
+    # attributes, which are supposed to be treated as immutable, unless we
+    # actually want to override the value (which here, we don't.)
+    valid_files(original_files).map(&:to_h).map do |file|
       file['tag'] ||= File.basename(file['filename']).tr('.', '-')
       file['statefile'] ||= "#{file['filename']}.rsyslog_state"
       file
