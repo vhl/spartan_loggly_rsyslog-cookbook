@@ -30,6 +30,8 @@ package 'rsyslog-gnutls' do
   action :install
 end
 
+assign_default_rsyslog_version if node.loggly.rsyslog_major_version.nil?
+
 directory node.loggly.tls.cert_path do
   owner 'root'
   group node.loggly.rsyslog_group
@@ -49,33 +51,15 @@ remote_file 'download loggly.com cert' do
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
-# By default, use templates with configuration syntax for rsyslog versions
-# 7.x and higher.
-rsyslog_conf_source = 'rsyslog-loggly.conf.erb'
-files_conf_source = 'files.conf.erb'
-app_conf_source = 'apps.conf.erb'
-
-# If rsyslog version 6.x or below is installed use templates with the older syntax
-ruby_block 'set_version6_sources_if_needed' do
-  block do
-    if rsyslog_major_version <= 6
-      set_version6_source(node.loggly.rsyslog.conf, 'rsyslog-loggly-version6.conf.erb')
-      set_version6_source(node.loggly.rsyslog.files_conf, 'files-version6.conf.erb')
-      node.loggly.apps.keys.each do |app_name|
-        set_version6_source(app_conf(app_name), 'apps-version6.conf.erb')
-      end
-    end
-  end
-  only_if { node.platform_family == 'rhel' }
-end
-
 # Write out configuration
 template node.loggly.rsyslog.conf do
-  source rsyslog_conf_source
+  helpers(LogglyHelpers)
+  source 'rsyslog-loggly.conf.erb'
   owner 'root'
   group 'root'
   mode 0644
   variables(crt_file: crt_file, tags: tags, token: node.loggly.token)
+  notifies :run, 'execute[validate_config]'
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
@@ -83,11 +67,13 @@ end
 files = configure_files(node.loggly.log_files)
 
 template node.loggly.rsyslog.files_conf do
-  source files_conf_source
+  helpers(LogglyHelpers)
+  source 'files.conf.erb'
   owner 'root'
   group 'root'
   mode 0644
   variables(log_files: files)
+  notifies :run, 'execute[validate_config]'
   notifies :restart, 'service[rsyslog]', :delayed
   not_if { files.empty? }
 end
@@ -98,7 +84,8 @@ node.loggly.apps.each do |app_name, app_log_files|
   file_tags = files.map { |file| file['tag'] }.uniq
 
   template app_conf(app_name) do
-    source app_conf_source
+    helpers(LogglyHelpers)
+    source 'apps.conf.erb'
     owner 'root'
     group 'root'
     mode 0644
@@ -106,7 +93,12 @@ node.loggly.apps.each do |app_name, app_log_files|
               format: loggly_format(app_name),
               log_files: files,
               file_tags: file_tags)
+    notifies :run, 'execute[validate_config]'
     notifies :restart, 'service[rsyslog]', :delayed
     not_if { files.empty? }
   end
+end
+
+service 'rsyslog' do
+  action :restart
 end

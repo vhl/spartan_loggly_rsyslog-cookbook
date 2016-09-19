@@ -168,6 +168,7 @@ describe 'spartan_loggly_rsyslog::default' do
         { filename: '/every/thing.txt', tag: 'all the options', statefile: '/tmp/state', severity: 'Warning' }
       ]
     end
+
     let(:chef_run) do
       ChefSpec::ServerRunner.new(file_cache_path: file_cache_path) do |node|
         node.set.loggly.token = token
@@ -203,33 +204,77 @@ describe 'spartan_loggly_rsyslog::default' do
 
       expect(chef_run).to render_file(files_conf).with_content(expected_files_conf)
     end
+
+    it 'file config change notifies rsyslog service to restart' do
+      expect(
+        chef_run.find_resource(:template, files_conf)
+      ).to notify('service[rsyslog]').to(:restart)
+    end
+
+    it 'file config change notifies input module file to be created' do
+      expect(
+        chef_run.find_resource(:template, files_conf)
+      ).to notify("template[#{input_module_conf}]").to(:create)
+    end
   end
 
   context 'on a ubuntu platform' do
-    let(:chef_run) do
-      ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
-                                 platform: 'ubuntu',
-                                 version: '14.04') do |node|
+    it 'installs the rsyslog-gnutls package' do
+      chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                            platform: 'ubuntu',
+                                            version: '14.04') do |node|
         node.set.loggly.token = token
       end.converge(described_recipe)
-    end
 
-    it 'does not run a ruby block to set rsyslog version6 template sources' do
-      expect(chef_run).not_to run_ruby_block('set_version6_sources_if_needed')
+      expect(chef_run).to install_package('rsyslog-gnutls')
     end
   end
 
-  context 'on a redhat platform' do
-    let(:chef_run) do
-      ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
-                                 platform: 'centos',
-                                 version: '6.7') do |node|
+  context 'on a rhel platform' do
+    it 'installs the rsyslog-gnutls package' do
+      chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                            platform: 'centos',
+                                            version: '6.6') do |node|
         node.set.loggly.token = token
       end.converge(described_recipe)
-    end
 
-    it 'runs a ruby block to set template sources to use rsyslog version6 syntax' do
-      expect(chef_run).to run_ruby_block('set_version6_sources_if_needed')
+      expect(chef_run).to install_package('rsyslog-gnutls')
     end
+  end
+
+  it 'defaults to rsyslog version 5.x on CentOS 6.x' do
+    chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                          platform: 'centos',
+                                          version: '6.6') do |node|
+      node.set.loggly.token = token
+    end.converge(described_recipe)
+    expect(chef_run.node.loggly.rsyslog_major_version).to eq(5)
+  end
+
+  it 'defaults to rsyslog version 7.x on CentOS 7.x' do
+    chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                          platform: 'centos',
+                                          version: '7.0') do |node|
+      node.set.loggly.token = token
+    end.converge(described_recipe)
+    expect(chef_run.node.loggly.rsyslog_major_version).to eq(7)
+  end
+
+  it 'defaults to rsyslog version 7.x on Ubuntu 14.04' do
+    chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                          platform: 'ubuntu',
+                                          version: '14.04') do |node|
+      node.set.loggly.token = token
+    end.converge(described_recipe)
+    expect(chef_run.node.loggly.rsyslog_major_version).to eq(7)
+  end
+
+  it 'defaults to rsyslog version 8.x on Ubuntu 16.04' do
+    chef_run = ChefSpec::ServerRunner.new(file_cache_path: file_cache_path,
+                                          platform: 'ubuntu',
+                                          version: '16.04') do |node|
+      node.set.loggly.token = token
+    end.converge(described_recipe)
+    expect(chef_run.node.loggly.rsyslog_major_version).to eq(8)
   end
 end

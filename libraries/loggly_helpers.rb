@@ -25,20 +25,33 @@ module LogglyHelpers
     (node.loggly.tags || []).map { |tag| "tag=\\\"#{tag}\\\"" }.join(' ')
   end
 
-  def rsyslog_major_version
-    version_cmd = Mixlib::ShellOut.new('rpm -q rsyslog')
-    version_cmd.run_command
-    response = version_cmd.stdout.chomp
-    # will return something like rsyslog-5.8.10-10.el6_6.x86_64
-    response.match(/^rsyslog-(\d+)/)[1].to_i
-  end
-
-  def set_version6_source(template, source_file)
-    resource = run_context.resource_collection.find(template: template)
-    resource.source(source_file)
-  end
-
   def app_conf(app_name)
     "#{node.loggly.rsyslog.conf_dir}/21-#{app_name}.conf"
+  end
+
+  def assign_default_rsyslog_version
+    node.default.loggly.rsyslog_major_version = version_for_platform || 7
+  end
+
+  private def version_for_platform
+    versions = versions_by_platform_name[node.platform]
+    highest_match = versions.keys.detect do |key|
+      node.platform_version.to_f >= key
+    end
+    highest_match && versions[highest_match]
+  end
+
+  private def versions_by_platform_name
+    # The Hash.new with default value ensures we'll be able to chain
+    # Enumerable methods when there's no platform match.
+    Hash.new({}).merge(node.loggly.rsyslog_versions_by_platform)
+  end
+
+  def supports_statefile?
+    node.loggly.rsyslog_major_version < 8
+  end
+
+  def supports_function_syntax?
+    node.loggly.rsyslog_major_version >= 7
   end
 end
