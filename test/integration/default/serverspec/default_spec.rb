@@ -99,8 +99,7 @@ describe file('/etc/rsyslog.d/21-nginx.conf') do
       $WorkDirectory #{expected_working_dir}
 
       # Add a tag for nginx app events
-      template(name="LogglyFormatNginx" type="string"
-      string="%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [test_token@41058 tag=\\"nginx\\"] %msg%\\n")
+      template(name="LogglyFormatNginx" type="string" string="%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [test_token@41058 tag=\\"nginx\\"] %msg%\\n")
 
       # Input for /tmp/nginx-access.log
       $InputFileName /tmp/nginx-access.log
