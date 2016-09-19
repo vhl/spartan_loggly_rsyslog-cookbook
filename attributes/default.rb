@@ -33,6 +33,7 @@ default.loggly.token = ''
 default.loggly.rsyslog.conf_dir = '/etc/rsyslog.d'
 default.loggly.rsyslog.conf = "#{node.loggly.rsyslog.conf_dir}/22-loggly.conf"
 default.loggly.rsyslog.files_conf = "#{node.loggly.rsyslog.conf_dir}/99-files.conf"
+default.loggly.rsyslog.im_file_conf = "#{node.loggly.rsyslog.conf_dir}/20-input-module-file.conf"
 
 default.loggly.rsyslog.host = 'logs-01.loggly.com'
 default.loggly.rsyslog.port = 6514

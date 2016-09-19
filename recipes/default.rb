@@ -63,6 +63,15 @@ template node.loggly.rsyslog.conf do
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
+template node.loggly.rsyslog.im_file_conf do
+  helpers(LogglyHelpers)
+  source 'input-module-file.conf.erb'
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :nothing
+end
+
 # Write out configs for files
 files = configure_files(node.loggly.log_files)
 
@@ -73,6 +82,7 @@ template node.loggly.rsyslog.files_conf do
   group 'root'
   mode 0644
   variables(log_files: files)
+  notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]"
   notifies :run, 'execute[validate_config]'
   notifies :restart, 'service[rsyslog]', :delayed
   not_if { files.empty? }
@@ -93,12 +103,9 @@ node.loggly.apps.each do |app_name, app_log_files|
               format: loggly_format(app_name),
               log_files: files,
               file_tags: file_tags)
+    notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]"
     notifies :run, 'execute[validate_config]'
     notifies :restart, 'service[rsyslog]', :delayed
     not_if { files.empty? }
   end
-end
-
-service 'rsyslog' do
-  action :restart
 end
