@@ -2,13 +2,30 @@
 
 module(load="imfile" PollingInterval="<%= node.loggly.rsyslog.input_file_poll_interval %>")
 
+<%- if supports_function_syntax? -%>
 <%- @log_files.each do |logfile| -%>
 input(type="imfile"
       File="<%= logfile['filename'] %>"
       Tag="<%= logfile['tag'] %>"
-      Statefile="<%= logfile['statefile'] %>"
+      <% if supports_statefile? -%>Statefile="<%= logfile['statefile'] %>"<%- end -%>
   <%- if logfile.key?('severity') -%>
       Severity="<%= logfile['severity'] %>"
   <%- end %>
   )
+<%- end -%>
+<%- else -%>
+$ModLoad imfile
+$InputFilePollInterval <%= node.loggly.rsyslog.input_file_poll_interval %>
+
+<%- @log_files.each do |logfile| -%>
+# Input for <%= logfile['filename'] %>
+$InputFileName <%= logfile['filename'] %>
+$InputFileTag <%= logfile['tag'] %>
+$InputFileStateFile <%= logfile['statefile'] %> # This must be unique for each file being polled
+<%- if logfile.key?('severity') -%>
+$InputFileSeverity <%= logfile['severity'] %>
+<%- end %>
+$InputFilePersistStateInterval 20000
+$InputRunFileMonitor
+<%- end -%>
 <%- end -%>

@@ -1,4 +1,5 @@
 module LogglyHelpers
+
   def configure_files(original_files)
     # The .to_h is required because files aren't hashes, but are chef node
     # attributes, which are supposed to be treated as immutable, unless we
@@ -25,20 +26,25 @@ module LogglyHelpers
     (node.loggly.tags || []).map { |tag| "tag=\\\"#{tag}\\\"" }.join(' ')
   end
 
-  def rsyslog_major_version
-    version_cmd = Mixlib::ShellOut.new('rpm -q rsyslog')
-    version_cmd.run_command
-    response = version_cmd.stdout.chomp
-    # will return something like rsyslog-5.8.10-10.el6_6.x86_64
-    response.match(/^rsyslog-(\d+)/)[1].to_i
-  end
-
-  def set_version6_source(template, source_file)
-    resource = run_context.resource_collection.find(template: template)
-    resource.source(source_file)
-  end
-
   def app_conf(app_name)
     "#{node.loggly.rsyslog.conf_dir}/21-#{app_name}.conf"
+  end
+
+  def select_default_rsyslog_version
+    # The Hash.new with default value ensures we'll be able to chain
+    # Enumerable methods when there's no platform match.
+    versions = Hash.new({}).merge(node.loggly.rsyslog_versions_by_platform)
+    matching_version = versions[node.platform].detect do |key, value|
+      node.platform_version.to_f >= key && value
+    end
+    matching_version || 7
+  end
+
+  def supports_statefile?
+    node.default.loggly.rsyslog_major_version <= 8.0
+  end
+
+  def supports_function_syntax?
+    node.default.loggly.rsyslog_major_version >= 7.0
   end
 end

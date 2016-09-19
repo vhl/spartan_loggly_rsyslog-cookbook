@@ -30,6 +30,8 @@ package 'rsyslog-gnutls' do
   action :install
 end
 
+node.default.loggly.rsyslog_major_version ||= select_default_rsyslog_version
+
 directory node.loggly.tls.cert_path do
   owner 'root'
   group node.loggly.rsyslog_group
@@ -71,6 +73,7 @@ end
 
 # Write out configuration
 template node.loggly.rsyslog.conf do
+  helpers(LogglyHelpers)
   source rsyslog_conf_source
   owner 'root'
   group 'root'
@@ -83,6 +86,7 @@ end
 files = configure_files(node.loggly.log_files)
 
 template node.loggly.rsyslog.files_conf do
+  helpers(LogglyHelpers)
   source files_conf_source
   owner 'root'
   group 'root'
@@ -98,6 +102,7 @@ node.loggly.apps.each do |app_name, app_log_files|
   file_tags = files.map { |file| file['tag'] }.uniq
 
   template app_conf(app_name) do
+    helpers(LogglyHelpers)
     source app_conf_source
     owner 'root'
     group 'root'
