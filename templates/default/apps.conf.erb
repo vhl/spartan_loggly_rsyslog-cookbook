@@ -7,6 +7,20 @@ template(name="<%= @format %>" type="string" string="%protocol-version% %timesta
 $template <%= @format %>,"<%%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [<%= node.loggly.token %>@41058 tag=\"<%= @app_name %>\"] %msg%\n"
 <%- end -%>
 
+<%- if supports_function_syntax? -%>
+<%- @log_files.each do |logfile| -%>
+input(type="imfile"
+      File="<%= logfile['filename'] %>"
+      Tag="<%= logfile['tag'] %>"
+      <% if supports_statefile? -%>
+      Statefile="<%= logfile['statefile'] %>"
+      <%- end -%>
+      <%- if logfile.key?('severity') -%>
+      Severity="<%= logfile['severity'] %>"
+      <%- end %>
+  )
+<%- end -%>
+<%- else -%>
 <% @log_files.each do |logfile| -%>
 # Input for <%= logfile['filename'] %>
 $InputFileName <%= logfile['filename'] %>
@@ -17,6 +31,7 @@ $InputFileStateFile <%= logfile['statefile'] %>
 $InputFilePersistStateInterval 20000
 $InputRunFileMonitor
 
+<% end -%>
 <% end -%>
 
 # Send to Loggly then discard

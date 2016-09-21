@@ -51,6 +51,18 @@ remote_file 'download loggly.com cert' do
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
+# resource_exists = proc do
+begin
+  resources 'execute[validate_config]'
+  true
+rescue Chef::Exceptions::ResourceNotFound
+  execute 'validate_config' do
+    command "rsyslogd -N 1 -f #{node.rsyslog.config_prefix}/rsyslog.conf"
+    action  :nothing
+  end
+end
+# end
+
 # Write out configuration
 template node.loggly.rsyslog.conf do
   helpers(LogglyHelpers)
@@ -59,7 +71,7 @@ template node.loggly.rsyslog.conf do
   group 'root'
   mode 0644
   variables(crt_file: crt_file, tags: tags, token: node.loggly.token)
-  notifies :run, 'execute[validate_config]'
+  notifies :run, 'execute[validate_config]', :delayed
   notifies :restart, 'service[rsyslog]', :delayed
 end
 
@@ -82,8 +94,8 @@ template node.loggly.rsyslog.files_conf do
   group 'root'
   mode 0644
   variables(log_files: files)
-  notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]"
-  notifies :run, 'execute[validate_config]'
+  notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]", :immediate
+  notifies :run, 'execute[validate_config]', :delayed
   notifies :restart, 'service[rsyslog]', :delayed
   not_if { files.empty? }
 end
@@ -103,8 +115,8 @@ node.loggly.apps.each do |app_name, app_log_files|
               format: loggly_format(app_name),
               log_files: files,
               file_tags: file_tags)
-    notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]"
-    notifies :run, 'execute[validate_config]'
+    notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]", :immediate
+    notifies :run, 'execute[validate_config]', :delayed
     notifies :restart, 'service[rsyslog]', :delayed
     not_if { files.empty? }
   end

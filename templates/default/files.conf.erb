@@ -14,9 +14,6 @@ input(type="imfile"
   )
 <%- end -%>
 <%- else -%>
-$ModLoad imfile
-$InputFilePollInterval <%= node.loggly.rsyslog.input_file_poll_interval %>
-
 <%- @log_files.each do |logfile| -%>
 # Input for <%= logfile['filename'] %>
 $InputFileName <%= logfile['filename'] %>
