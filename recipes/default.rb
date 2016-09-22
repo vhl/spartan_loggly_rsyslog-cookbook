@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+Chef::Recipe.public_send(:include, LogglyHelpers)
+Chef::Resource.public_send(:include, LogglyHelpers)
+
 fail 'You must define the Loggly token.' if node.loggly.token.empty?
 
 # Install rsyslog
@@ -27,9 +30,11 @@ package 'rsyslog-gnutls' do
   action :install
 end
 
+assign_default_rsyslog_version if node.loggly.rsyslog_major_version.nil?
+
 directory node.loggly.tls.cert_path do
   owner 'root'
-  group 'syslog'
+  group node.loggly.rsyslog_group
   mode 0750
   action :create
   recursive true
@@ -43,38 +48,76 @@ remote_file 'download loggly.com cert' do
   path crt_file
   source node.loggly.tls.cert_url
   checksum node.loggly.tls.cert_checksum
-  notifies :restart, 'service[rsyslog]', :immediate
+  notifies :restart, 'service[rsyslog]', :delayed
 end
 
-# Set up tags
-tags = node.loggly.tags || []
-tags = tags.map { |tag| "tag=\\\"#{tag}\\\"" }.join(' ')
+# resource_exists = proc do
+begin
+  resources 'execute[validate_config]'
+  true
+rescue Chef::Exceptions::ResourceNotFound
+  execute 'validate_config' do
+    command "rsyslogd -N 1 -f #{node.rsyslog.config_prefix}/rsyslog.conf"
+    action  :nothing
+  end
+end
+# end
 
 # Write out configuration
 template node.loggly.rsyslog.conf do
+  helpers(LogglyHelpers)
   source 'rsyslog-loggly.conf.erb'
   owner 'root'
   group 'root'
   mode 0644
   variables(crt_file: crt_file, tags: tags, token: node.loggly.token)
-  notifies :restart, 'service[rsyslog]', :immediate
+  notifies :run, 'execute[validate_config]', :delayed
+  notifies :restart, 'service[rsyslog]', :delayed
+end
+
+template node.loggly.rsyslog.im_file_conf do
+  helpers(LogglyHelpers)
+  source 'input-module-file.conf.erb'
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :nothing
 end
 
 # Write out configs for files
-log_files = node.loggly.log_files.reject { |f| !f.is_a?(Hash) || !f.key?('filename') || f['filename'].strip.empty? }
-files = log_files.map do |f|
-  f = f.to_h
-  f['tag'] = File.basename(f['filename']).tr('.', '-') unless f.key?('tag')
-  f['statefile'] = "#{f['filename']}.rsyslog_state" unless f.key?('statefile')
-  f
-end
+files = configure_files(node.loggly.log_files)
 
 template node.loggly.rsyslog.files_conf do
+  helpers(LogglyHelpers)
   source 'files.conf.erb'
   owner 'root'
   group 'root'
   mode 0644
   variables(log_files: files)
-  notifies :restart, 'service[rsyslog]', :immediate
-  not_if { log_files.empty? }
+  notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]", :immediate
+  notifies :run, 'execute[validate_config]', :delayed
+  notifies :restart, 'service[rsyslog]', :delayed
+  not_if { files.empty? }
+end
+
+# Write out configs for apps
+node.loggly.apps.each do |app_name, app_log_files|
+  files = configure_files(app_log_files)
+  file_tags = files.map { |file| file['tag'] }.uniq
+
+  template app_conf(app_name) do
+    helpers(LogglyHelpers)
+    source 'apps.conf.erb'
+    owner 'root'
+    group 'root'
+    mode 0644
+    variables(app_name: app_name,
+              format: loggly_format(app_name),
+              log_files: files,
+              file_tags: file_tags)
+    notifies :create, "template[#{node.loggly.rsyslog.im_file_conf}]", :immediate
+    notifies :run, 'execute[validate_config]', :delayed
+    notifies :restart, 'service[rsyslog]', :delayed
+    not_if { files.empty? }
+  end
 end

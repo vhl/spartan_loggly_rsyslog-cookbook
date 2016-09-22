@@ -11,11 +11,14 @@ Supported Versions
 ------------
 - Chef 12
 - Ruby 2.1.6
-- rsyslog 7
+- Ruby 2.2.4
+- rsyslog 5.8 through 8.4
 
 Platform
 --------
-Tested against Ubuntu 14.04
+Tested against Ubuntu 12.04, 14.04, 15.04, 16.04
+Tested against Centos 6.6, 6.7, 6.8, 7.2.
+Tested against Debian 7.11
 
 Attributes
 ----------
@@ -58,6 +61,35 @@ Example:
     { filename: '/just/a/file.log' },
     { filename: '/every/thing.txt', tag: 'all the options', statefile: '/tmp/state', severity: 'Warning' }
   ]
+```
+
+### `default.loggly.apps` (default: {})
+
+Set up rsyslog to watch a group of related files, and dispatch contents to loggly with a common tag.
+
+This can be used to implement the pattern shown in the loggly docs for [apache](https://www.loggly.com/docs/sending-apache-logs/) and [nginx](https://www.loggly.com/docs/nginx-server-logs/).
+
+Expects a hash.
+
+Each key is used in naming the config file, and also set the common tag sent to loggly.
+
+The values should be an array of files in the format used by `default.loggly.log_files`.
+
+In addition to the common application-level tag, each file will have a file-specific tag, which allows differentiating within loggly.
+
+This example will generate a file /etc/rsyslog.d/21-nginx.conf with contents similar to [the nginx manual configuration example](https://www.loggly.com/docs/nginx-server-logs/):
+```
+  node.default.loggly.apps = {
+    'nginx' => [ { 'filename' => '/var/log/nginx/access.log',
+                   'statefile' => 'stat-nginx-access',
+                   'tag' => 'nginx-access'
+                   'severity' => 'info'},
+                 { 'filename' => '/var/log/nginx/error.log'
+                   'statefile' => 'stat-nginx-error',
+                   'tag' => 'nginx-error',
+                   'severity' => 'error' }
+    ]
+  }
 ```
 
 ### `default.loggly.tls.cert_path` (default: '/etc/rsyslog.d/keys/ca.d')
