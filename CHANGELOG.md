@@ -4,6 +4,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.1.0] - 2016-09-27
+### Added
+- Support for nginx apps
+- Support for centos-6.8, centos-7.2, ubuntu-16.04
+- Support for rsyslog 6
+
 ## [3.0.0] - 2016-04-21
 ### Removed
 - Data Bag support.
@@ -40,7 +46,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Configuration for monitoring a list of files
 - Configuration for monitoring a list of directories
 
-[Unreleased]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v3.0.0...HEAD
+[Unreleased]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v3.1.0...HEAD
+[3.0.1]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v3.0.0..v3.1.0
 [3.0.0]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.3...v3.0.0
 [2.1.3]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbookcompare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/spartansystems/spartan_loggly_rsyslog-cookbook/compare/v2.1.1...v2.1.2
